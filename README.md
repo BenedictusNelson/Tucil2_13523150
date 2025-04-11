@@ -2,7 +2,7 @@
 ## Bahasa: Java
 
 ## Deskripsi Singkat
-Program ini adalah implementasi algoritma Divide and Conquer menggunakan struktur data Quadtree untuk melakukan kompresi gambar berbasis analisis keseragaman blok piksel. Program ini mendukung berbagai metode perhitungan error seperti Variance, Mean Absolute Deviation (MAD), MaxDiff, Entropy, dan Structural Similarity Index (SSIM) untuk menentukan pembagian blok dalam proses kompresi.
+Program ini adalah implementasi algoritma Divide and Conquer menggunakan struktur data Quadtree untuk melakukan kompresi gambar berbasis analisis keseragaman blok pixel. Program ini mendukung berbagai metode perhitungan error seperti Variance, Mean Absolute Deviation (MAD), MaxDiff, Entropy, dan Structural Similarity Index (SSIM) untuk menentukan pembagian blok dalam proses kompresi.
 
 ## 📁 Struktur Direktori
 ```bash
