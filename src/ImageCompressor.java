@@ -6,6 +6,7 @@ import javax.imageio.ImageIO;
 public class ImageCompressor {
     // Parameter input
     private String inputPath;
+    private int errorMethod;
     private double threshold;
     private int minBlockSize;
     private String outputImagePath;
@@ -30,6 +31,7 @@ public class ImageCompressor {
      */
     public ImageCompressor(String inputPath, int errorMethod, double threshold, int minBlockSize, double targetCompression, String outputImagePath) {
         this.inputPath = inputPath;
+        this.errorMethod = errorMethod;
         this.threshold = threshold;
         this.minBlockSize = minBlockSize;
         this.outputImagePath = outputImagePath;
@@ -101,24 +103,134 @@ public class ImageCompressor {
      * Menghitung error pada blok gambar berdasarkan metode yang dipilih.
      * I.S.: Blok gambar terdefinisi oleh (x, y, width, height)
      * F.S.: Mengembalikan nilai error 
+     *  Metode :
+     *  1. Variance (default)
+     *  2. Mean Absolute Deviation (MAD)
+     *  3. MaxDiff (selisih nilai max min)
+     *  4. Entropy
+     *  5. Structural Similarity Index (SSIM) – bonus (error = 1 - SSIM)
      */
     private double calculateError(int x, int y, int width, int height) {
-        double sum = 0, sumSq = 0;
         int count = width * height;
         
-        for (int i = x; i < x + width; i++) {
-            for (int j = y; j < y + height; j++) {
-                Color c = new Color(originalImage.getRGB(i, j));
-
-                int pixelValue = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
-                sum += pixelValue;
-                sumSq += pixelValue * pixelValue;
-            }
-        }
-        double mean = sum / count;
-        return (sumSq / count) - (mean * mean);
-    }
+        switch (errorMethod) {
+            case 1:
+                // Variance
+                double sum = 0, sumSq = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                        sum += pixel;
+                        sumSq += pixel * pixel;
+                    }
+                }
+                double mean = sum / count;
+                return (sumSq / count) - (mean * mean);
     
+            case 2:
+                // Mean Absolute Deviation 
+                double sumVal = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                        sumVal += pixel;
+                    }
+                }
+                double meanVal = sumVal / count;
+                            double madSum = 0;
+                            for (int i = x; i < x + width; i++) {
+                                for (int j = y; j < y + height; j++) {
+                                    Color c = new Color(originalImage.getRGB(i, j));
+                                    int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                                    madSum += Math.abs(pixel - meanVal);
+                                }
+                            }
+                            return madSum / count;
+
+            case 3:
+                // MaxDiff
+                int minVal = 255, maxVal = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                        if (pixel < minVal) minVal = pixel;
+                        if (pixel > maxVal) maxVal = pixel;
+                    }
+                }
+                return maxVal - minVal;
+                
+            case 4:
+                // Entropy: H = - Σ [p(i) * log2(p(i))]
+                int[] histogram = new int[256];
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                        histogram[pixel]++;
+                    }
+                }
+                double entropy = 0;
+                for (int i = 0; i < 256; i++) {
+                    if (histogram[i] > 0) {
+                        double p = (double) histogram[i] / count;
+                        entropy += p * (Math.log(p) / Math.log(2));  // log base 2
+                    }
+                }
+                return -entropy;
+                
+            case 5:
+                // Structural Similarity Index (SSIM)
+                double sumR = 0, sumG = 0, sumB = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        sumR += c.getRed();
+                        sumG += c.getGreen();
+                        sumB += c.getBlue();
+                    }
+                }
+                double avgR = sumR / count;
+                double avgG = sumG / count;
+                double avgB = sumB / count;
+                
+                double varR = 0, varG = 0, varB = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        varR += Math.pow(c.getRed() - avgR, 2);
+                        varG += Math.pow(c.getGreen() - avgG, 2);
+                        varB += Math.pow(c.getBlue() - avgB, 2);
+                    }
+                }
+                varR /= count;
+                varG /= count;
+                varB /= count;
+                
+                double C2 = Math.pow(0.03 * 255, 2);
+                double ssimR = C2 / (varR + C2);
+                double ssimG = C2 / (varG + C2);
+                double ssimB = C2 / (varB + C2);
+                double avgSSIM = (ssimR + ssimG + ssimB) / 3.0;
+                return 1.0 - avgSSIM;
+                
+            default:
+                double defSum = 0, defSumSq = 0;
+                for (int i = x; i < x + width; i++) {
+                    for (int j = y; j < y + height; j++) {
+                        Color c = new Color(originalImage.getRGB(i, j));
+                        int pixel = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
+                        defSum += pixel;
+                        defSumSq += pixel * pixel;
+                    }
+                }
+                double defMean = defSum / count;
+                return (defSumSq / count) - (defMean * defMean);
+        }
+    }
+
     /**
      * Menghitung rata-rata warna pada blok.
      * I.S.: Blok gambar terdefinisi oleh (x, y, width, height)
