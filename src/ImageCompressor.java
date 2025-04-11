@@ -6,10 +6,7 @@ import javax.imageio.ImageIO;
 public class ImageCompressor {
     // Parameter input
     private String inputPath;
-<<<<<<< HEAD
     private int errorMethod;
-=======
->>>>>>> 1e23e536fc450e2acb747684f39abceead347018
     private double threshold;
     private int minBlockSize;
     private String outputImagePath;
@@ -34,6 +31,7 @@ public class ImageCompressor {
      */
     public ImageCompressor(String inputPath, int errorMethod, double threshold, int minBlockSize, double targetCompression, String outputImagePath) {
         this.inputPath = inputPath;
+        this.errorMethod = errorMethod;
         this.threshold = threshold;
         this.minBlockSize = minBlockSize;
         this.outputImagePath = outputImagePath;
@@ -113,7 +111,6 @@ public class ImageCompressor {
      *  5. Structural Similarity Index (SSIM) – bonus (error = 1 - SSIM)
      */
     private double calculateError(int x, int y, int width, int height) {
-<<<<<<< HEAD
         int count = width * height;
         
         switch (errorMethod) {
@@ -130,23 +127,6 @@ public class ImageCompressor {
                 }
                 double mean = sum / count;
                 return (sumSq / count) - (mean * mean);
-=======
-        double sum = 0, sumSq = 0;
-        int count = width * height;
-        
-        for (int i = x; i < x + width; i++) {
-            for (int j = y; j < y + height; j++) {
-                Color c = new Color(originalImage.getRGB(i, j));
-
-                int pixelValue = (c.getRed() + c.getGreen() + c.getBlue()) / 3;
-                sum += pixelValue;
-                sumSq += pixelValue * pixelValue;
-            }
-        }
-        double mean = sum / count;
-        return (sumSq / count) - (mean * mean);
-    }
->>>>>>> 1e23e536fc450e2acb747684f39abceead347018
     
             case 2:
                 // Mean Absolute Deviation 
