@@ -53,8 +53,6 @@ cd ../bin
 .\run.bat
 ```
 ### 4. Input Program:
-```bash
-
 Alamat gambar input (absolut path)
 
 Metode error (1-5)
@@ -66,7 +64,7 @@ Minimum Block Size
 Target Compression
 
 Output File Path hasil kompresi
-```
+
 
 ## 🏆 Author
 👤 Benedictus Nelson (13523150)
